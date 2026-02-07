@@ -3,9 +3,9 @@ import json
 import requests
 
 # ==== НАСТРОЙКИ ====
-IAM_TOKEN = "AQVN2AgJ61WvJuqGofMo2hXb8__pnd36N-3AUiLJ"          # вставьте сюда ваш IAM‑токен
-FOLDER_ID = "b1gkb9rqigu2i1lb3rk9"        # вставьте сюда идентификатор каталога
-IMAGE_PATH = "C:/Users/osobo/Downloads/photo_2025-12-23_14-28-29.jpg"             # путь к картинке, из которой нужно извлечь текст
+IAM_TOKEN = "..."          # вставьте сюда ваш IAM‑токен
+FOLDER_ID = "..."        # вставьте сюда идентификатор каталога
+IMAGE_PATH = "..."             # путь к картинке, из которой нужно извлечь текст
 
 # ==== ФУНКЦИЯ КОДИРОВАНИЯ ФАЙЛА В BASE64 ====
 def encode_file(file_path: str) -> str:
@@ -49,4 +49,5 @@ print("\nРаспознанные строки:")
 for block in result["result"]["textAnnotation"]["blocks"]:
     for line in block.get("lines", []):
         print(line["text"])
+
 
