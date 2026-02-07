@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MarkMap Viewer</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--tg-theme-bg-color, #111);
+      color: var(--tg-theme-text-color, #eee);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      font-size: 18px;
+      color: var(--tg-theme-hint-color, #888);
+    }
+    .error {
+      color: #ff5555;
+      padding: 20px;
+      text-align: center;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.15.3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.15.3"></script>
+</head>
+<body>
+
+  <div id="app" style="width:100%; height:100%;">
+    <div class="loading">Загрузка карты...</div>
+  </div>
+
+  <script>
+    // 1. Инициализация Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
+
+    // 2. Настройки (Замените GITHUB_USER/REPO на свои, если хотите хардкод, 
+    // но лучше пусть JS берет это динамически, если логика одна)
+    // ВНИМАНИЕ: Здесь нужно вписать тот же репозиторий, что и в config.py
+    const REPO = "nekit-it/TGbot"; 
+    const BRANCH = "main"; 
+
+    // 3. Получение ID карты из URL
+    const params = new URLSearchParams(window.location.search);
+    const mapFilename = params.get("map");
+
+    const appDiv = document.getElementById("app");
+
+    async function loadMap() {
+        if (!mapFilename) {
+            appDiv.innerHTML = `
+                <div style="text-align:center; padding-top:40px;">
+                    <h2>👋 Привет!</h2>
+                    <p>Здесь будут твои карты.</p>
+                    <p>Создай карту через бота.</p>
+                </div>`;
+            return;
+        }
+
+        try {
+            // Формируем ссылку на RAW контент GitHub
+            // Добавляем timestamp, чтобы обойти кэширование
+            const rawUrl = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/maps/${mapFilename}?t=${Date.now()}`;
+            
+            const response = await fetch(rawUrl);
+            
+            if (!response.ok) {
+                throw new Error("Карта не найдена или доступ закрыт.");
+            }
+
+            const markdown = await response.text();
+            
+            // Очищаем и рисуем
+            appDiv.innerHTML = '<svg id="mindmap"></svg>';
+            const { Markmap, loadCSS, loadJS } = window.markmap;
+            
+            // Markmap Autoloader сам найдет svg и отрендерит
+            const svg = document.querySelector('#mindmap');
+            Markmap.create(svg, null, window.markmap.Transformer.transform(markdown).root);
+
+        } catch (e) {
+            appDiv.innerHTML = `<div class="error">Ошибка: ${e.message}</div>`;
+        }
+    }
+
+    loadMap();
+  </script>
+</body>
+</html>
